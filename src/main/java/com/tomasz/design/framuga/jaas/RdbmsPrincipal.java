@@ -3,6 +3,8 @@ package com.tomasz.design.framuga.jaas;
 /* Security & JAAS imports */
 import java.io.Serializable;
 import java.security.Principal;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * <p>
@@ -16,6 +18,8 @@ import java.security.Principal;
  * @version 1.0
  */
 public class RdbmsPrincipal implements Principal, Serializable {
+
+    private static final Logger logger = LoggerFactory.getLogger(RdbmsPrincipal.class);
 
     private final String name;
 

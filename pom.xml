@@ -22,7 +22,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.test.skip>false</maven.test.skip>
         <classpath.prefix>lib</classpath.prefix>
-        <main.class>com.tomasz.design.framuga.App</main.class>
+        <main.class>com.tomasz.design.framuga.jaas.JaasTest</main.class>
     </properties>
 
     <profiles>
