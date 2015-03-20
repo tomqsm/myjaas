@@ -1,27 +1,26 @@
 package com.tomasz.design.framuga.jaas;
 
 /* Security & JAAS imports */
+import java.io.Serializable;
 import java.security.Principal;
 
 /**
  * <p>
  * Basic implementation of the Principal class. By implementing our own
- * Principal for our application, we can more easily add and remove
- * instances of our principals in the authenticated Subject during the
- * login and logout process.
+ * Principal for our application, we can more easily add and remove instances of
+ * our principals in the authenticated Subject during the login and logout
+ * process.
  *
  * @see java.security.Principal
- * @author  Paul Feuer and John Musser
+ * @author Paul Feuer and John Musser
  * @version 1.0
  */
+public class RdbmsPrincipal implements Principal, Serializable {
 
-public class RdbmsPrincipal implements Principal, java.io.Serializable {
-
-    private String name;
+    private final String name;
 
     /**
-     * Create a <code>RdbmsPrincipal</code> with no
-     * user name.
+     * Create a <code>RdbmsPrincipal</code> with no user name.
      *
      */
     public RdbmsPrincipal() {
@@ -29,13 +28,12 @@ public class RdbmsPrincipal implements Principal, java.io.Serializable {
     }
 
     /**
-     * Create a <code>RdbmsPrincipal</code> using a
-     * <code>String</code> representation of the
-     * user name.
+     * Create a <code>RdbmsPrincipal</code> using a <code>String</code>
+     * representation of the user name.
      *
      * <p>
      *
-     * @param name the user identification number (UID) for this user.
+     * @param newName
      *
      */
     public RdbmsPrincipal(String newName) {
@@ -43,36 +41,36 @@ public class RdbmsPrincipal implements Principal, java.io.Serializable {
     }
 
     /**
-     * Compares the specified Object with this
-     * <code>RdbmsPrincipal</code>
-     * for equality.  Returns true if the given object is also a
-     * <code>RdbmsPrincipal</code> and the two
-     * RdbmsPrincipals have the same name.
+     * Compares the specified Object with this <code>RdbmsPrincipal</code> for
+     * equality. Returns true if the given object is also a
+     * <code>RdbmsPrincipal</code> and the two RdbmsPrincipals have the same
+     * name.
      *
      * <p>
      *
      * @param o Object to be compared for equality with this
-     *		<code>RdbmsPrincipal</code>.
+     * <code>RdbmsPrincipal</code>.
      *
      * @return true if the specified Object is equal equal to this
-     *		<code>RdbmsPrincipal</code>.
+     * <code>RdbmsPrincipal</code>.
      */
+    @Override
     public boolean equals(Object o) {
-
-        if (o == null)
+        if (o == null) {
             return false;
-
-        if (this == o)
-            return true;
- 
-        if (o instanceof RdbmsPrincipal) {
-            if (((RdbmsPrincipal) o).getName().equals(name))
-                return true;
-            else
-                return false;
         }
-        else 
+        if (this == o) {
+            return true;
+        }
+        if (o instanceof RdbmsPrincipal) {
+            if (((RdbmsPrincipal) o).getName().equals(name)) {
+                return true;
+            } else {
+                return false;
+            }
+        } else {
             return false;
+        }
     }
 
     /**
@@ -82,34 +80,32 @@ public class RdbmsPrincipal implements Principal, java.io.Serializable {
      *
      * @return a hash code for this <code>RdbmsPrincipal</code>.
      */
+    @Override
     public int hashCode() {
         return name.hashCode();
     }
 
     /**
-     * Return a string representation of this
-     * <code>RdbmsPrincipal</code>.
+     * Return a string representation of this <code>RdbmsPrincipal</code>.
      *
      * <p>
      *
-     * @return a string representation of this
-     *		<code>RdbmsPrincipal</code>.
+     * @return a string representation of this <code>RdbmsPrincipal</code>.
      */
+    @Override
     public String toString() {
         return name;
     }
 
     /**
-     * Return the user name for this
-     * <code>RdbmsPrincipal</code>.
+     * Return the user name for this <code>RdbmsPrincipal</code>.
      *
      * <p>
      *
-     * @return the user name for this
-     *		<code>RdbmsPrincipal</code>
+     * @return the user name for this <code>RdbmsPrincipal</code>
      */
+    @Override
     public String getName() {
         return name;
     }
 }
-

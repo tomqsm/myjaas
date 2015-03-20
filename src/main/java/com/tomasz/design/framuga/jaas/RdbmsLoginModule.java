@@ -1,17 +1,15 @@
 package com.tomasz.design.framuga.jaas;
 
 /* Java imports */
-import java.io.*;
 import java.util.*;
 import java.sql.*;
 
 /* Security & JAAS imports */
-import java.security.*;
 import javax.security.auth.spi.LoginModule;
 import javax.security.auth.login.LoginException;
 import javax.security.auth.Subject;
 import javax.security.auth.callback.*;
-import org.apache.derby.jdbc.ClientDataSource;
+import javax.security.auth.login.FailedLoginException;
 
 /**
  * <p>
@@ -94,6 +92,7 @@ public class RdbmsLoginModule implements LoginModule {
      * @param options options specified in the login <code>Configuration</code>
      * for this particular <code>LoginModule</code>.
      */
+    @Override
     public void initialize(Subject subject, CallbackHandler callbackHandler,
             Map sharedState, Map options) {
 
@@ -131,6 +130,7 @@ public class RdbmsLoginModule implements LoginModule {
      * @exception LoginException if this <code>LoginModule</code> is unable to
      * perform the authentication.
      */
+    @Override
     public boolean login() throws LoginException {
 
         if (debug) {
@@ -197,6 +197,7 @@ public class RdbmsLoginModule implements LoginModule {
      * @return true if this LoginModule's own login and commit attempts
      * succeeded, or false otherwise.
      */
+    @Override
     public boolean commit() throws LoginException {
 
         if (debug) {
@@ -259,6 +260,7 @@ public class RdbmsLoginModule implements LoginModule {
      * @return false if this LoginModule's own login and/or commit attempts
      * failed, and true otherwise.
      */
+    @Override
     public boolean abort() throws javax.security.auth.login.LoginException {
 
         if (debug) {
@@ -294,6 +296,7 @@ public class RdbmsLoginModule implements LoginModule {
      * @return true in all cases since this <code>LoginModule</code> should not
      * be ignored.
      */
+    @Override
     public boolean logout() throws javax.security.auth.login.LoginException {
 
         if (debug) {

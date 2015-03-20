@@ -17,5 +17,6 @@ public class RdbmsCredential extends Properties {
 
     public RdbmsCredential() {
     }
+    
 }
 

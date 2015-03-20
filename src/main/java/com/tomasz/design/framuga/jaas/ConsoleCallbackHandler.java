@@ -1,9 +1,6 @@
 package com.tomasz.design.framuga.jaas;
 
-/* Java imports */
 import java.io.*;
-
-/* JAAS imports */
 import javax.security.auth.callback.*;
 
 /**
@@ -38,22 +35,20 @@ public class ConsoleCallbackHandler implements CallbackHandler {
      * @throws  UnsupportedCallbackException if the callback is not an
      * instance of NameCallback or PasswordCallback
      */
+    @Override
     public void handle(Callback[] callbacks) 
         throws java.io.IOException, UnsupportedCallbackException {
-
-        for (int i = 0; i < callbacks.length; i++) {
-
-            if (callbacks[i] instanceof NameCallback) {
-                System.out.print(((NameCallback)callbacks[i]).getPrompt());
+        for (Callback callback : callbacks) {
+            if (callback instanceof NameCallback) {
+                System.out.print(((NameCallback) callback).getPrompt());
                 String user=(new BufferedReader(new InputStreamReader(System.in))).readLine();
-                ((NameCallback)callbacks[i]).setName(user);
-            } else if (callbacks[i] instanceof PasswordCallback) {
-                System.out.print(((PasswordCallback)callbacks[i]).getPrompt());
+                ((NameCallback) callback).setName(user);
+            } else if (callback instanceof PasswordCallback) {
+                System.out.print(((PasswordCallback) callback).getPrompt());
                 String pass=(new BufferedReader(new InputStreamReader(System.in))).readLine();
-                ((PasswordCallback)callbacks[i]).setPassword(pass.toCharArray());
+                ((PasswordCallback) callback).setPassword(pass.toCharArray());
             } else {
-                throw(new UnsupportedCallbackException(
-                            callbacks[i], "Callback class not supported"));
+                throw new UnsupportedCallbackException(callback, "Callback class not supported");
             }
         }
     }
