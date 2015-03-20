@@ -63,11 +63,7 @@ public class RdbmsPrincipal implements Principal, Serializable {
             return true;
         }
         if (o instanceof RdbmsPrincipal) {
-            if (((RdbmsPrincipal) o).getName().equals(name)) {
-                return true;
-            } else {
-                return false;
-            }
+            return ((RdbmsPrincipal) o).getName().equals(name);
         } else {
             return false;
         }

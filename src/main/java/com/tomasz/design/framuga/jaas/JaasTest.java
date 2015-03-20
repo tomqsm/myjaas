@@ -1,11 +1,9 @@
 package com.tomasz.design.framuga.jaas;
 
 /* Java imports */
-import java.io.*;
 import java.util.*;
 
 /* JAAS imports */
-import java.security.*;
 import javax.security.auth.*;
 import javax.security.auth.login.*;
 
@@ -23,7 +21,9 @@ import javax.security.auth.login.*;
 public class JaasTest {
 
     public static void main(String[] args) {
-
+//        System.setProperty("java.security.auth.login.config", "jaas.config"); // alternative to command line param setting
+//        -Djava.security.auth.login.config=file:./jaas.config --for VM arguments
+//        login.config.url.1=file:C:/Users/path/to/jaas.config --modify java.security to specify login configuration file
         boolean loginSuccess = false;
         Subject subject = null;
 
@@ -51,7 +51,7 @@ public class JaasTest {
                 System.out.println(lex.getClass().getName() + ": " + lex.getMessage());
             }
 
-        } catch (Exception ex) {
+        } catch (LoginException ex) {
             System.out.println(ex.getClass().getName() + ": " + ex.getMessage());
         }
 

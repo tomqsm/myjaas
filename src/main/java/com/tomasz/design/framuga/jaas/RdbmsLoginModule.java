@@ -46,22 +46,22 @@ import javax.security.auth.login.FailedLoginException;
 public class RdbmsLoginModule implements LoginModule {
 
     // initial state
-    CallbackHandler callbackHandler;
-    Subject subject;
-    Map sharedState;
-    Map options;
+    private CallbackHandler callbackHandler;
+    private Subject subject;
+    private Map sharedState;
+    private Map options;
 
     // temporary state
-    Vector tempCredentials;
-    Vector tempPrincipals;
+    private final Vector tempCredentials;
+    private final Vector tempPrincipals;
 
     // the authentication status
-    boolean success;
+    private boolean success;
 
     // configurable options
-    boolean debug;
-    String url;
-    String driverClass;
+    private boolean debug;
+    private String url;
+    private String driverClass;
 
     /**
      * <p>
