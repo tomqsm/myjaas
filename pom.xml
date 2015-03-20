@@ -18,6 +18,7 @@
     <properties>
         <maven.build.timestamp.format>dd/MM/yyyy HH:mm</maven.build.timestamp.format>
         <date>${maven.build.timestamp}</date>
+        <derby.version>10.10.2.0</derby.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.test.skip>false</maven.test.skip>
         <classpath.prefix>lib</classpath.prefix>
@@ -63,10 +64,22 @@
             <version>1.4</version>
             <scope>test</scope>
         </dependency>
-        <dependency>
+<!--        <dependency>
             <groupId>commons-io</groupId>
             <artifactId>commons-io</artifactId>
             <version>2.4</version>
+        </dependency>-->
+        <dependency>
+            <groupId>org.apache.derby</groupId>
+            <artifactId>derbyclient</artifactId>
+            <version>${derby.version}</version>
+            <type>jar</type>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.derby</groupId>
+            <artifactId>derbynet</artifactId>
+            <version>${derby.version}</version>
+            <type>jar</type>
         </dependency>
     </dependencies>
     

@@ -26,8 +26,8 @@
             <filtered>true</filtered>
         </file>
         <file>
-            <source>config/configuration.xml</source>
-            <outputDirectory>config</outputDirectory>
+            <source>jaas.config</source>
+            <outputDirectory>/</outputDirectory>
             <filtered>true</filtered>
         </file>
     </files>
