@@ -10,6 +10,8 @@ import javax.security.auth.login.LoginException;
 import javax.security.auth.Subject;
 import javax.security.auth.callback.*;
 import javax.security.auth.login.FailedLoginException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * <p>
@@ -44,6 +46,8 @@ import javax.security.auth.login.FailedLoginException;
  * @version 1.0
  */
 public class RdbmsLoginModule implements LoginModule {
+
+    private static final Logger logger = LoggerFactory.getLogger(RdbmsLoginModule.class);
 
     // initial state
     private CallbackHandler callbackHandler;
@@ -93,11 +97,11 @@ public class RdbmsLoginModule implements LoginModule {
      * for this particular <code>LoginModule</code>.
      */
     @Override
-    public void initialize(Subject subject, CallbackHandler callbackHandler,
-            Map sharedState, Map options) {
-
+    public void initialize(Subject subject, CallbackHandler callbackHandler, Map sharedState, Map options) {
+        boolean inst = callbackHandler instanceof ConsoleCredentialSetterCallbackHandler;
+        logger.debug("callback handler type of ConsoleCredentialSetterCallbackHandler: {}, actual: {}", inst, callbackHandler.getClass().getName());
         // save the initial state
-        this.callbackHandler = callbackHandler;
+        this.callbackHandler = callbackHandler; //SecureCallbackHandler inner of LoginContext
         this.subject = subject;
         this.sharedState = sharedState;
         this.options = options;
@@ -109,12 +113,7 @@ public class RdbmsLoginModule implements LoginModule {
 
         url = (String) options.get("url");
         driverClass = (String) options.get("driver");
-
-        if (debug) {
-            System.out.println("\t\t[RdbmsLoginModule] initialize");
-            System.out.println("\t\t[RdbmsLoginModule] url: " + url);
-            System.out.println("\t\t[RdbmsLoginModule] driver: " + driverClass);
-        }
+        logger.debug("Found options - url:{}, driverClass:{}", url, driverClass);
     }
 
     /**
@@ -132,10 +131,7 @@ public class RdbmsLoginModule implements LoginModule {
      */
     @Override
     public boolean login() throws LoginException {
-
-        if (debug) {
-            System.out.println("\t\t[RdbmsLoginModule] login");
-        }
+        logger.debug("Starting login.");
 
         if (callbackHandler == null) {
             throw new LoginException("Error: no CallbackHandler available "
@@ -148,7 +144,8 @@ public class RdbmsLoginModule implements LoginModule {
                 new NameCallback("Username: "),
                 new PasswordCallback("Password: ", false)
             };
-
+            logger.debug("Created NameCallback and PasswordCallback.");
+            logger.debug("ConsoleCredentialSetterCallbackHandler?: {}", callbackHandler instanceof ConsoleCredentialSetterCallbackHandler);
             callbackHandler.handle(callbacks);
 
             String username = ((NameCallback) callbacks[0]).getName();
@@ -199,11 +196,7 @@ public class RdbmsLoginModule implements LoginModule {
      */
     @Override
     public boolean commit() throws LoginException {
-
-        if (debug) {
-            System.out.println("\t\t[RdbmsLoginModule] commit");
-        }
-
+        logger.debug("Begins commit.");
         if (success) {
 
             if (subject.isReadOnly()) {
@@ -356,7 +349,6 @@ public class RdbmsLoginModule implements LoginModule {
 //        ds.setServerName("localhost");
 //        ds.setCreateDatabase("create");
 //        ds.setPortNumber(1527);
-        
 
         try {
             Class.forName(driverClass);

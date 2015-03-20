@@ -1,6 +1,5 @@
 package com.tomasz.design.framuga.jaas;
 
-/* Security & JAAS imports */
 import java.io.Serializable;
 import java.security.Principal;
 import org.slf4j.Logger;

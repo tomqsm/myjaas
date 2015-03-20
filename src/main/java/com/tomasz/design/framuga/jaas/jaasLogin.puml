@@ -1,0 +1,49 @@
+@startuml
+'autonumber
+title Jaas Login
+hide footbox
+skinparam backgroundColor white
+
+skinparam sequence {
+	ArrowColor black
+	ActorBorderColor gray
+	LifeLineBorderColor gray
+	LifeLineBackgroundColor gray
+	
+	ParticipantBorderColor gray
+	ParticipantBackgroundColor white
+	ParticipantFontName Monospaced
+	ParticipantFontSize 10
+	ParticipantFontColor black
+	
+	ActorBackgroundColor white
+	ActorFontColor black
+	ActorFontSize 10
+	ActorFontName Monospaced
+}
+actor User
+User -[#gray]> JaasTest: launch
+JaasTest -> LoginContext: initiate login
+
+jaas.config --> RdbmsLoginModule: configures
+activate CallbackHandler
+activate LoginContext
+LoginContext -> jaas.config: reads jaas.config
+LoginContext -> RdbmsLoginModule: <<creates>>
+LoginContext -> CallbackHandler: has callback
+LoginContext -> Subject: create Subject
+activate Subject
+activate UsernameCallback
+activate PasswordCallback
+note left: handles username callback, password callback
+CallbackHandler -> UsernameCallback: set username
+CallbackHandler -> PasswordCallback: set password
+activate RdbmsLoginModule
+RdbmsLoginModule -> CallbackHandler: handle callbacks
+
+
+
+legend right
+  Jaas login flow.
+endlegend
+@enduml

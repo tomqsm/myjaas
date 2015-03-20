@@ -7,17 +7,17 @@ import org.slf4j.LoggerFactory;
 
 /**
  * <p>
- * ConsoleCallbackHandler prompts and reads from the command line console line
- * for username and password. This can be used by a JAAS application to
- * instantiate a CallbackHandler
+ * ConsoleCredentialSetterCallbackHandler prompts and reads from the command
+ * line console line for username and password. This can be used by a JAAS
+ * application to instantiate a CallbackHandler
  *
  * @see javax.security.auth.callback
  * @author Paul Feuer and John Musser
  * @version 1.0
  */
-public class ConsoleCallbackHandler implements CallbackHandler {
+public class ConsoleCredentialSetterCallbackHandler implements CallbackHandler {
 
-    private static final Logger logger = LoggerFactory.getLogger(ConsoleCallbackHandler.class);
+    private static final Logger logger = LoggerFactory.getLogger(ConsoleCredentialSetterCallbackHandler.class);
 
     /**
      * <p>
@@ -25,7 +25,7 @@ public class ConsoleCallbackHandler implements CallbackHandler {
      * for answers to authentication questions. This can be used by JAAS
      * applications to instantiate a CallbackHandler.
      */
-    public ConsoleCallbackHandler() {
+    public ConsoleCredentialSetterCallbackHandler() {
     }
 
     /**
@@ -39,6 +39,7 @@ public class ConsoleCallbackHandler implements CallbackHandler {
      */
     @Override
     public void handle(Callback[] callbacks) throws IOException, UnsupportedCallbackException {
+        logger.debug("Begining to set values in callbacks.");
         for (Callback callback : callbacks) {
             if (callback instanceof NameCallback) {
                 NameCallback nameCallback = ((NameCallback) callback);
@@ -54,5 +55,6 @@ public class ConsoleCallbackHandler implements CallbackHandler {
                 throw new UnsupportedCallbackException(callback, "Callback class not supported");
             }
         }
+        logger.debug("Finished to set values in callbacks.");
     }
 }
