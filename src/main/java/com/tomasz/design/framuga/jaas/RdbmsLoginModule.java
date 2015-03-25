@@ -56,8 +56,8 @@ public class RdbmsLoginModule implements LoginModule {
     private Map options;
 
     // temporary state
-    private final Vector tempCredentials;
-    private final Vector tempPrincipals;
+    private final List tempCredentials;
+    private final List <String> roles;
 
     // the authentication status
     private boolean success;
@@ -67,13 +67,16 @@ public class RdbmsLoginModule implements LoginModule {
     private String url;
     private String driverClass;
 
+    private UserPrincipal userPrincipal;
+    private RolePrincipal rolePrincipal;
+
     /**
      * <p>
      * Creates a login module that can authenticate against a JDBC datasource.
      */
     public RdbmsLoginModule() {
-        tempCredentials = new Vector();
-        tempPrincipals = new Vector();
+        tempCredentials = new ArrayList();
+        roles = new ArrayList<>();
         success = false;
         debug = false;
     }
@@ -98,7 +101,7 @@ public class RdbmsLoginModule implements LoginModule {
      */
     @Override
     public void initialize(Subject subject, CallbackHandler callbackHandler, Map sharedState, Map options) {
-        boolean inst = callbackHandler instanceof ConsoleCredentialSetterCallbackHandler;
+        boolean inst = callbackHandler instanceof UsernamePasswordCallbackHandler;
         logger.debug("callback handler type of ConsoleCredentialSetterCallbackHandler: {}, actual: {}", inst, callbackHandler.getClass().getName());
         // save the initial state
         this.callbackHandler = callbackHandler; //SecureCallbackHandler inner of LoginContext
@@ -132,29 +135,26 @@ public class RdbmsLoginModule implements LoginModule {
     @Override
     public boolean login() throws LoginException {
         logger.debug("Starting login.");
-
-        if (callbackHandler == null) {
-            throw new LoginException("Error: no CallbackHandler available "
-                    + "to garner authentication information from the user");
-        }
-
         try {
             // Setup default callback handlers.
             Callback[] callbacks = new Callback[]{
-                new NameCallback("Username: "),
-                new PasswordCallback("Password: ", false)
+                new NameCallback(""),
+                new PasswordCallback("", false)
             };
-            logger.debug("Created NameCallback and PasswordCallback.");
-            logger.debug("ConsoleCredentialSetterCallbackHandler?: {}", callbackHandler instanceof ConsoleCredentialSetterCallbackHandler);
             callbackHandler.handle(callbacks);
+            final NameCallback nameCallback = (NameCallback) callbacks[0];
+            final PasswordCallback passwordCcallback = (PasswordCallback) callbacks[1];
 
-            String username = ((NameCallback) callbacks[0]).getName();
-            String password = new String(((PasswordCallback) callbacks[1]).getPassword());
+            String username = nameCallback.getName();
+            String password = new String(passwordCcallback.getPassword());
 
-            ((PasswordCallback) callbacks[1]).clearPassword();
+            passwordCcallback.clearPassword();
 
-            success = rdbmsValidate(username, password);
-
+//            success = rdbmsValidate(username, password);
+            success = username.equals("t@h.com") && password.equals("pass");
+            userPrincipal = new UserPrincipal(username);
+// store username and roles to be used in commit()
+            roles.add("admin");
             callbacks[0] = null;
             callbacks[1] = null;
 
@@ -164,6 +164,7 @@ public class RdbmsLoginModule implements LoginModule {
 
             return (true);
         } catch (LoginException ex) {
+            logger.error("{}", ex.getMessage());
             throw ex;
         } catch (Exception ex) {
             success = false;
@@ -182,7 +183,7 @@ public class RdbmsLoginModule implements LoginModule {
      * <p>
      * If this LoginModule's own authentication attempt succeeded (checked by
      * retrieving the private state saved by the <code>login</code> method),
-     * then this method associates a <code>RdbmsPrincipal</code> with the
+     * then this method associates a <code>RolePrincipal</code> with the
      * <code>Subject</code> located in the <code>LoginModule</code>. If this
      * LoginModule's own authentication attempted failed, then this method
      * removes any state that was originally saved.
@@ -202,33 +203,25 @@ public class RdbmsLoginModule implements LoginModule {
             if (subject.isReadOnly()) {
                 throw new LoginException("Subject is Readonly");
             }
-
+            subject.getPrincipals().add(userPrincipal);
             try {
-                Iterator it = tempPrincipals.iterator();
-
-                if (debug) {
-                    while (it.hasNext()) {
-                        System.out.println("\t\t[RdbmsLoginModule] Principal: " + it.next().toString());
-                    }
+                for(String role : roles){
+                    logger.debug("principal: {}", role);
+                    rolePrincipal = new RolePrincipal(role);
+                    subject.getPrincipals().add(rolePrincipal);
                 }
-
-                subject.getPrincipals().addAll(tempPrincipals);
-                subject.getPublicCredentials().addAll(tempCredentials);
-
-                tempPrincipals.clear();
-                tempCredentials.clear();
-
+                roles.clear();
                 if (callbackHandler instanceof PassiveCallbackHandler) {
                     ((PassiveCallbackHandler) callbackHandler).clearPassword();
                 }
-
                 return (true);
             } catch (Exception ex) {
                 ex.printStackTrace(System.out);
+                logger.error("Exception 12: {}", ex.getMessage());
                 throw new LoginException(ex.getMessage());
             }
         } else {
-            tempPrincipals.clear();
+            roles.clear();
             tempCredentials.clear();
             return (true);
         }
@@ -255,24 +248,20 @@ public class RdbmsLoginModule implements LoginModule {
      */
     @Override
     public boolean abort() throws javax.security.auth.login.LoginException {
+//        logger.debug("abort");
+//        // Clean out state
+//        success = false;
+//
+//        roles.clear();
+//        tempCredentials.clear();
+//
+//        if (callbackHandler instanceof PassiveCallbackHandler) {
+//            ((PassiveCallbackHandler) callbackHandler).clearPassword();
+//        }
+//
+//        logout();
 
-        if (debug) {
-            System.out.println("\t\t[RdbmsLoginModule] abort");
-        }
-
-        // Clean out state
-        success = false;
-
-        tempPrincipals.clear();
-        tempCredentials.clear();
-
-        if (callbackHandler instanceof PassiveCallbackHandler) {
-            ((PassiveCallbackHandler) callbackHandler).clearPassword();
-        }
-
-        logout();
-
-        return (true);
+        return false;
     }
 
     /**
@@ -291,37 +280,29 @@ public class RdbmsLoginModule implements LoginModule {
      */
     @Override
     public boolean logout() throws javax.security.auth.login.LoginException {
-
-        if (debug) {
-            System.out.println("\t\t[RdbmsLoginModule] logout");
-        }
-
-        tempPrincipals.clear();
-        tempCredentials.clear();
-
-        if (callbackHandler instanceof PassiveCallbackHandler) {
-            ((PassiveCallbackHandler) callbackHandler).clearPassword();
-        }
-
-        // remove the principals the login module added
-        Iterator it = subject.getPrincipals(RdbmsPrincipal.class).iterator();
-        while (it.hasNext()) {
-            RdbmsPrincipal p = (RdbmsPrincipal) it.next();
-            if (debug) {
-                System.out.println("\t\t[RdbmsLoginModule] removing principal " + p.toString());
-            }
-            subject.getPrincipals().remove(p);
-        }
-
-        // remove the credentials the login module added
-        it = subject.getPublicCredentials(RdbmsCredential.class).iterator();
-        while (it.hasNext()) {
-            RdbmsCredential c = (RdbmsCredential) it.next();
-            if (debug) {
-                System.out.println("\t\t[RdbmsLoginModule] removing credential " + c.toString());
-            }
-            subject.getPrincipals().remove(c);
-        }
+        logger.debug("Starting logout.");
+//        roles.clear();
+//        tempCredentials.clear();
+//
+//        if (callbackHandler instanceof PassiveCallbackHandler) {
+//            ((PassiveCallbackHandler) callbackHandler).clearPassword();
+//        }
+//
+//        // remove the principals the login module added
+//        Iterator it = subject.getPrincipals(RolePrincipal.class).iterator();
+//        while (it.hasNext()) {
+//            RolePrincipal p = (RolePrincipal) it.next();
+//            logger.debug("removing principal: {}", p.toString());
+//            subject.getPrincipals().remove(p);
+//        }
+//
+//        // remove the credentials the login module added
+//        it = subject.getPublicCredentials(RdbmsCredential.class).iterator();
+//        while (it.hasNext()) {
+//            RdbmsCredential c = (RdbmsCredential) it.next();
+//            logger.debug("removing credential: {}", c.toString());
+//            subject.getPrincipals().remove(c);
+//        }
 
         return (true);
     }
@@ -341,7 +322,7 @@ public class RdbmsLoginModule implements LoginModule {
         Connection con;
         String query = "SELECT * FROM login.USER_AUTH where userid='" + user + "'";
         Statement stmt;
-        RdbmsPrincipal p = null;
+        RolePrincipal p = null;
         RdbmsCredential c = null;
         boolean passwordMatch = false;
 //        final ClientDataSource ds = new ClientDataSource();
@@ -359,21 +340,11 @@ public class RdbmsLoginModule implements LoginModule {
         }
 
         try {
-            if (debug) {
-                System.out.println("\t\t[RdbmsLoginModule] Trying to connect...");
-            }
-
+            logger.debug("Trying to connect");
             con = DriverManager.getConnection(url, "tumcyk", "Drzewko74");
-
-            if (debug) {
-                System.out.println("\t\t[RdbmsLoginModule] connected!");
-            }
-
+            logger.debug("Connected.");
             stmt = con.createStatement();
-
-            if (debug) {
-                System.out.println("\t\t[RdbmsLoginModule] " + query);
-            }
+            logger.debug("Query: {}", query);
 
             ResultSet result = stmt.executeQuery(query);
             String dbPassword = null, dbFname = null, dbLname = null;
@@ -394,32 +365,21 @@ public class RdbmsLoginModule implements LoginModule {
             if (dbPassword == null) {
                 throw new LoginException("User " + user + " not found");
             }
-
-            if (debug) {
-                System.out.println("\t\t[RdbmsLoginModule] '" + pass + "' equals '" + dbPassword + "'?");
-            }
-
             passwordMatch = pass.equals(dbPassword);
             if (passwordMatch) {
-                if (debug) {
-                    System.out.println("\t\t[RdbmsLoginModule] passwords match!");
-                }
-
+                logger.debug("passwords match");
                 c = new RdbmsCredential();
                 c.setProperty("delete_perm", deletePerm);
                 c.setProperty("update_perm", updatePerm);
                 this.tempCredentials.add(c);
-                this.tempPrincipals.add(new RdbmsPrincipal(dbFname + " " + dbLname));
+//                this.roles.add(new RolePrincipal(dbFname + " " + dbLname));
             } else {
-                if (debug) {
-                    System.out.println("\t\t[RdbmsLoginModule] passwords do NOT match!");
-                }
+                logger.debug("passwords dont match");
             }
             stmt.close();
             con.close();
         } catch (SQLException ex) {
-            System.err.print("SQLException: ");
-            System.err.println(ex.getMessage());
+            logger.error("SQLException: {}", ex.getMessage());
             throw new LoginException("SQLException: " + ex.getMessage());
         }
         return (passwordMatch);

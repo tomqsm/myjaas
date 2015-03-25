@@ -10,7 +10,7 @@ import javax.security.auth.login.*;
 /**
  * <p>
  JaasTest uses JAAS and our custom RdbmsLoginModule 
- and ConsoleCredentialSetterCallbackHandler. Prompts and reads from the 
+ and UsernamePasswordCallbackHandler. Prompts and reads from the 
  command line console line for username/password and
  then authenticates using a JDBC database.
  * 
@@ -28,7 +28,7 @@ public class JaasTest {
         Subject subject = null;
 
         try {
-            ConsoleCredentialSetterCallbackHandler cbh = new ConsoleCredentialSetterCallbackHandler();
+            UsernamePasswordCallbackHandler cbh = new UsernamePasswordCallbackHandler("","");
 
             LoginContext lc = new LoginContext("Example", cbh);
 
