@@ -1,8 +1,10 @@
 package com.tomasz.design.framuga.jaas;
 
 /* Java imports */
+import java.io.IOException;
 import java.util.*;
 import java.sql.*;
+import java.util.logging.Level;
 
 /* Security & JAAS imports */
 import javax.security.auth.spi.LoginModule;
@@ -57,10 +59,10 @@ public class RdbmsLoginModule implements LoginModule {
 
     // temporary state
     private final List tempCredentials;
-    private final List <String> roles;
+    private final List<String> roles;
 
     // the authentication status
-    private boolean success;
+    private boolean loginResult;
 
     // configurable options
     private boolean debug;
@@ -77,7 +79,7 @@ public class RdbmsLoginModule implements LoginModule {
     public RdbmsLoginModule() {
         tempCredentials = new ArrayList();
         roles = new ArrayList<>();
-        success = false;
+        loginResult = false;
         debug = false;
     }
 
@@ -135,41 +137,31 @@ public class RdbmsLoginModule implements LoginModule {
     @Override
     public boolean login() throws LoginException {
         logger.debug("Starting login.");
+        Callback[] callbacks = new Callback[]{
+            new NameCallback("username"),
+            new PasswordCallback("password", false)
+        };
         try {
-            // Setup default callback handlers.
-            Callback[] callbacks = new Callback[]{
-                new NameCallback(""),
-                new PasswordCallback("", false)
-            };
             callbackHandler.handle(callbacks);
-            final NameCallback nameCallback = (NameCallback) callbacks[0];
-            final PasswordCallback passwordCcallback = (PasswordCallback) callbacks[1];
-
-            String username = nameCallback.getName();
-            String password = new String(passwordCcallback.getPassword());
-
-            passwordCcallback.clearPassword();
-
-//            success = rdbmsValidate(username, password);
-            success = username.equals("t@h.com") && password.equals("pass");
-            userPrincipal = new UserPrincipal(username);
-// store username and roles to be used in commit()
-            roles.add("admin");
-            callbacks[0] = null;
-            callbacks[1] = null;
-
-            if (!success) {
-                throw new LoginException("Authentication failed: Password does not match");
-            }
-
-            return (true);
-        } catch (LoginException ex) {
+        } catch (IOException | UnsupportedCallbackException ex) {
             logger.error("{}", ex.getMessage());
-            throw ex;
-        } catch (Exception ex) {
-            success = false;
             throw new LoginException(ex.getMessage());
         }
+        final NameCallback nameCallback = (NameCallback) callbacks[0];
+        final PasswordCallback passwordCcallback = (PasswordCallback) callbacks[1];
+
+        String username = nameCallback.getName();
+        String password = new String(passwordCcallback.getPassword());
+        passwordCcallback.clearPassword();
+
+//            success = rdbmsValidate(username, password);
+        loginResult = username.equals("t@h.com") && password.equals("pass");
+        userPrincipal = new UserPrincipal(username);
+
+        roles.add("admin");
+        callbacks[0] = null;
+        callbacks[1] = null;
+        return loginResult;
     }
 
     /**
@@ -198,14 +190,14 @@ public class RdbmsLoginModule implements LoginModule {
     @Override
     public boolean commit() throws LoginException {
         logger.debug("Begins commit.");
-        if (success) {
+        if (loginResult) {
 
             if (subject.isReadOnly()) {
                 throw new LoginException("Subject is Readonly");
             }
             subject.getPrincipals().add(userPrincipal);
             try {
-                for(String role : roles){
+                for (String role : roles) {
                     logger.debug("principal: {}", role);
                     rolePrincipal = new RolePrincipal(role);
                     subject.getPrincipals().add(rolePrincipal);
@@ -248,19 +240,10 @@ public class RdbmsLoginModule implements LoginModule {
      */
     @Override
     public boolean abort() throws javax.security.auth.login.LoginException {
-//        logger.debug("abort");
-//        // Clean out state
-//        success = false;
-//
-//        roles.clear();
-//        tempCredentials.clear();
-//
-//        if (callbackHandler instanceof PassiveCallbackHandler) {
-//            ((PassiveCallbackHandler) callbackHandler).clearPassword();
-//        }
-//
-//        logout();
-
+        logger.debug("abort");
+        loginResult = false;
+        roles.clear();
+        logout();
         return false;
     }
 
@@ -281,30 +264,12 @@ public class RdbmsLoginModule implements LoginModule {
     @Override
     public boolean logout() throws javax.security.auth.login.LoginException {
         logger.debug("Starting logout.");
-//        roles.clear();
-//        tempCredentials.clear();
-//
-//        if (callbackHandler instanceof PassiveCallbackHandler) {
-//            ((PassiveCallbackHandler) callbackHandler).clearPassword();
-//        }
-//
-//        // remove the principals the login module added
-//        Iterator it = subject.getPrincipals(RolePrincipal.class).iterator();
-//        while (it.hasNext()) {
-//            RolePrincipal p = (RolePrincipal) it.next();
-//            logger.debug("removing principal: {}", p.toString());
-//            subject.getPrincipals().remove(p);
-//        }
-//
-//        // remove the credentials the login module added
-//        it = subject.getPublicCredentials(RdbmsCredential.class).iterator();
-//        while (it.hasNext()) {
-//            RdbmsCredential c = (RdbmsCredential) it.next();
-//            logger.debug("removing credential: {}", c.toString());
-//            subject.getPrincipals().remove(c);
-//        }
-
-        return (true);
+        roles.clear();
+        for (RolePrincipal p : subject.getPrincipals(RolePrincipal.class)) {
+            logger.debug("removing principal: {}", p.toString());
+            subject.getPrincipals().remove(p);
+        }
+        return true;
     }
 
     /**
