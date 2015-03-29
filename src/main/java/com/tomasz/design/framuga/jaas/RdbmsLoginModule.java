@@ -239,12 +239,16 @@ public class RdbmsLoginModule implements LoginModule {
      * failed, and true otherwise.
      */
     @Override
-    public boolean abort() throws javax.security.auth.login.LoginException {
+    public boolean abort() throws LoginException {
         logger.debug("abort");
+        boolean isAborted = false;
+        if(loginResult == false){
+            isAborted = true;
+        }
         loginResult = false;
         roles.clear();
         logout();
-        return false;
+        return isAborted;
     }
 
     /**
