@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<config>
-<properties>
-        <color>blue</color>
-        <logging>${log.level}</logging>
-        <time>519228237200171</time>
-    </properties>
-</config>

@@ -155,7 +155,7 @@ public class RdbmsLoginModule implements LoginModule {
         passwordCcallback.clearPassword();
 
 //            success = rdbmsValidate(username, password);
-        loginResult = username.equals("t@h.com") && password.equals("pass");
+        loginResult = username.equals("t@h.com") && password.equals("aa");
         userPrincipal = new UserPrincipal(username);
 
         roles.add("admin");
