@@ -2,16 +2,23 @@ package com.tomasz.design.framuga.jaas;
 
 /* Java imports */
 import java.io.IOException;
-import java.util.*;
-import java.sql.*;
-import java.util.logging.Level;
-
-/* Security & JAAS imports */
-import javax.security.auth.spi.LoginModule;
-import javax.security.auth.login.LoginException;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import javax.security.auth.Subject;
-import javax.security.auth.callback.*;
+import javax.security.auth.callback.Callback;
+import javax.security.auth.callback.CallbackHandler;
+import javax.security.auth.callback.NameCallback;
+import javax.security.auth.callback.PasswordCallback;
+import javax.security.auth.callback.UnsupportedCallbackException;
 import javax.security.auth.login.FailedLoginException;
+import javax.security.auth.login.LoginException;
+import javax.security.auth.spi.LoginModule;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -103,8 +110,6 @@ public class RdbmsLoginModule implements LoginModule {
      */
     @Override
     public void initialize(Subject subject, CallbackHandler callbackHandler, Map sharedState, Map options) {
-        boolean inst = callbackHandler instanceof UsernamePasswordCallbackHandler;
-        logger.debug("callback handler type of ConsoleCredentialSetterCallbackHandler: {}, actual: {}", inst, callbackHandler.getClass().getName());
         // save the initial state
         this.callbackHandler = callbackHandler; //SecureCallbackHandler inner of LoginContext
         this.subject = subject;
@@ -155,7 +160,7 @@ public class RdbmsLoginModule implements LoginModule {
         passwordCcallback.clearPassword();
 
 //            success = rdbmsValidate(username, password);
-        loginResult = username.equals("t@h.com") && password.equals("aa");
+        loginResult = username.equals("t@h.com") && password.equals("aaaa");
         userPrincipal = new UserPrincipal(username);
 
         roles.add("admin");
@@ -242,7 +247,7 @@ public class RdbmsLoginModule implements LoginModule {
     public boolean abort() throws LoginException {
         logger.debug("abort");
         boolean isAborted = false;
-        if(loginResult == false){
+        if (loginResult == false) {
             isAborted = true;
         }
         loginResult = false;
